@@ -1,17 +1,13 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Camera;
-
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -19,39 +15,31 @@ import org.firstinspires.ftc.robotcore.external.JavaUtil;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@TeleOp(name = "MechaTeleOp")
-public class MechaTeleOp extends LinearOpMode {
+@Config
+@TeleOp(name = "FSM Test")
+public class FSMTesting extends LinearOpMode {
     private DcMotor fL, bL, fR, bR; // carousel rotator will be fR
     private DcMotor intake, outtake, encoder;
     private Servo lights, linkage;
     private Servo carouselRotator;
     private ColorSensor indicator2;
     private DistanceSensor distance;
-    private float CurrentColor2;
+    private float CurrentColor1, CurrentColor2;
     private final double ticks_in_degree = 700/180.0;
     private WebcamName cam;
     private int motif = 0;
+    public static boolean motif1GPP = false, motif2PGP = false;
+    public int pos1 = 0, pos2 = 0, pos3 = 0;
     public enum intakeStates {
         Intake_START,
-        Intake_DELAY1,
         Intake_TURN1,
-        Intake_BUFFER,
-        Intake_DELAY2,
         Intake_TURN2
     }
-    public enum outtakeStates {
-        Outtake_START,
-        Outtake_SHOOT1,
-        Outtake_SHOOT2
-    }
+
     intakeStates intakeState = intakeStates.Intake_START;
-    outtakeStates outtakeState = outtakeStates.Outtake_START;
-
-
 
     @Override
     public void runOpMode() throws InterruptedException {
-
         ElapsedTime timer = new ElapsedTime();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         cam = hardwareMap.get(WebcamName.class, "cam");
@@ -71,6 +59,7 @@ public class MechaTeleOp extends LinearOpMode {
         distance = hardwareMap.get(DistanceSensor.class, "distance");
 
 
+
         fL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         bL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         fR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -78,11 +67,12 @@ public class MechaTeleOp extends LinearOpMode {
         encoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         encoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+        linkage.setDirection(Servo.Direction.REVERSE);
         intake.setDirection(DcMotor.Direction.REVERSE);
         fR.setDirection(DcMotor.Direction.REVERSE);
         bR.setDirection(DcMotor.Direction.REVERSE);
-        linkage.setDirection(Servo.Direction.REVERSE);
         double maxSpeed = 0.8;
+
 
 
 
@@ -90,130 +80,107 @@ public class MechaTeleOp extends LinearOpMode {
         double fLeftPower, bLeftPower, fRightPower, bRightPower;
 
         waitForStart();
-        // Rising/Falling Edge Detector
-        Gamepad lastGamepad2 = new Gamepad();
-
         // Initial Positions
         linkage.setPosition(0.4);
         carouselRotator.setPosition(0.9);
 
-        // April Tags | Check for the motif and set the rest to zero. | One-GPP; Two-PGP; Three PPG
-        boolean motifOne = false, motifTwo = false;
-        if (motif == 1) {
-            motifOne = true;
-        } else if (motif == 2) {
-            motifTwo = true;
-        }
-
         // Positions of each of section of the carousel | 0-Purple, 1-Green
-        int pos1 = 0, pos2 = 0, pos3 = 0;
 
 
         if (opModeIsActive()) {
             while (opModeIsActive()) {
-                CurrentColor2 = JavaUtil.rgbToHue(indicator2.red(), indicator2.green(), indicator2.blue());
-                int position = encoder.getCurrentPosition();
                 double distanceval = distance.getDistance(DistanceUnit.MM);
                 telemetry.addData("Distance", distanceval);
                 telemetry.addData("State", intakeState);
-                telemetry.addData("Sensor 2 Hue", CurrentColor2);
-                telemetry.addData("Encoder", position);
                 telemetry.update();
-                if (CurrentColor2 > 180 && CurrentColor2 < 360) {
-                    lights.setPosition(0.715);
-                    pos2 = 0;
-                } else if (CurrentColor2 > 60 && CurrentColor2 < 180) {
-                    lights.setPosition(0.5);
-                    pos2 = 1;
-                } else {
-                    lights.setPosition(0.279);
-                }
                 switch (intakeState) {
                     case Intake_START:
                         carouselRotator.setPosition(0.9);
                         if (distanceval < 90 && distanceval > 50) {
-                            timer.reset();   // start delay timer
-                            intakeState = intakeStates.Intake_DELAY1;
-                        }
-                        break;
-                    case Intake_DELAY1:
-                        if (timer.milliseconds() > 300) {
                             carouselRotator.setPosition(0.53);
-                            timer.reset();
-                            intakeState = intakeStates.Intake_BUFFER;
-                        }
-                        break;
-                    case Intake_BUFFER:
-                        if (timer.milliseconds() > 250) {
                             intakeState = intakeStates.Intake_TURN1;
+                            sleep(1500);
 
                         }
                         break;
                     case Intake_TURN1:
                         if (distanceval < 90) {
                             timer.reset();
-                            intakeState = intakeStates.Intake_DELAY2;
-                        }
-                        break;
-                    case Intake_DELAY2:
-                        if (timer.milliseconds()>300) {
                             carouselRotator.setPosition(0.16);
                             intakeState = intakeStates.Intake_TURN2;
                         }
-                        break;
                     case Intake_TURN2:
                         break;
                 }
+
                 if (gamepad2.x) {
                     intakeState = intakeStates.Intake_START;
                 }
+//                switch (outtakeState) {
+//                    case Outtake_ROT1:
+//                        if (gamepad2.y) {
+//                            outtake.setPower(0.8);
+//                            carouselRotator.setPosition(0.08);
+//                            outtakeState = outtakeStates.Outtake_EXT1;
+//                        }
+//                        break;
+//                    case Outtake_EXT1:
+//                        linkage.setPosition(0.15);
+//                        sleep(500);
+//                        linkage.setPosition(0.4);
+//                        outtakeState = outtakeStates.Outtake_ROT2;
+//                        break;
+//                    case Outtake_ROT2:
+//                        carouselRotator.setPosition(0.45);
+//                        outtakeState = outtakeStates.Outtake_EXT2;
+//                        break;
+//                    case Outtake_EXT2:
+//                        linkage.setPosition(0.15);
+//                        sleep(500);
+//                        linkage.setPosition(0.4);
+//                        outtakeState = outtakeStates.Outtake_ROT3;
+//                        break;
+//                    case Outtake_ROT3:
+//                        carouselRotator.setPosition(0.08);
+//                        outtakeState = outtakeStates.Outtake_EXT3;
+//                        break;
+//                    case Outtake_EXT3:
+//                        linkage.setPosition(0.15);
+//                        sleep(500);
+//                        linkage.setPosition(0.4);
+//                        outtakeState = outtakeStates.Outtake_ROT1;
+//                        intakeState = intakeStates.Intake_START;
+//                        break;
+//                    }
+//                if (gamepad2.a) {
+//                    outtakeState = outtakeStates.Outtake_ROT1;
+//                }
+
                 if (gamepad2.y) {
                     outtake.setPower(0.8);
-                    sleep(2000);
+                    sleep(1000);
                     carouselRotator.setPosition(0.08);
-                    shoot();
+                    sleep(500);
+                    linkage.setPosition(0.15);
+                    sleep(500);
+                    linkage.setPosition(0.4);
+                    sleep(500);
                     carouselRotator.setPosition(0.45);
-                    shoot();
+                    sleep(500);
+                    linkage.setPosition(0.15);
+                    sleep(500);
+                    linkage.setPosition(0.4);
+                    sleep(500);
                     carouselRotator.setPosition(0.82);
-                    shoot();
+                    sleep(500);
+                    linkage.setPosition(0.15);
+                    sleep(500);
+                    linkage.setPosition(0.4);
+                    sleep(500);
                     outtake.setPower(0);
                     intakeState = intakeStates.Intake_START;
                 }
-
-                if (gamepad1.a) {
-                    intake.setPower(1);
-                } else {
-                    intake.setPower(0);
-                }
-
-                f = gamepad1.left_stick_y;
-                r = -gamepad1.right_stick_x;
-                s = -gamepad1.left_stick_x;
-                fLeftPower = (f + r + s);
-                bLeftPower = (f + r - s);
-                fRightPower = (f - r - s);
-                bRightPower = (f - r + s);
-                double maxN = Math.max(Math.abs(fLeftPower), Math.max(Math.abs(bLeftPower),
-                        Math.max(Math.abs(fRightPower), Math.abs(bRightPower))));
-                if (maxN > 1) {
-                    fLeftPower /= maxN;
-                    bLeftPower /= maxN;
-                    fRightPower /= maxN;
-                    bRightPower /= maxN;
-                }
-                fL.setPower(fLeftPower * maxSpeed);
-                bL.setPower(bLeftPower * maxSpeed);
-                fR.setPower(fRightPower * maxSpeed);
-                bR.setPower(bRightPower * maxSpeed);
             }
         }
     }
-    private void shoot() throws InterruptedException {
-        sleep(500);
-        linkage.setPosition(0.15);
-        sleep(250);
-        linkage.setPosition(0.4);
-        sleep(500);
-    }
 }
-
