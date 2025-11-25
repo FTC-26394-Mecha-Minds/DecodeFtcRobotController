@@ -28,7 +28,6 @@ public class MechaTeleOp extends LinearOpMode {
     private ColorSensor indicator2;
     private DistanceSensor distance;
     private float CurrentColor2;
-    private final double ticks_in_degree = 700/180.0;
     private WebcamName cam;
     private int motif = 0;
     public enum intakeStates {
@@ -41,8 +40,17 @@ public class MechaTeleOp extends LinearOpMode {
     }
     public enum outtakeStates {
         Outtake_START,
-        Outtake_SHOOT1,
-        Outtake_SHOOT2
+        Outtake_TURN1,
+        Outtake_SHOOT1_START,
+        Outtake_SHOOT1_PULSE,
+        Outtake_TURN2,
+        Outtake_SHOOT2_START,
+        Outtake_SHOOT2_PULSE,
+        Outtake_TURN3,
+        Outtake_SHOOT3_START,
+        Outtake_SHOOT3_PULSE,
+        Outtake_BUFFER,
+        Outtake_DONE
     }
     intakeStates intakeState = intakeStates.Intake_START;
     outtakeStates outtakeState = outtakeStates.Outtake_START;
@@ -53,6 +61,7 @@ public class MechaTeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
 
         ElapsedTime timer = new ElapsedTime();
+        ElapsedTime outtakeTimer = new ElapsedTime();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
         cam = hardwareMap.get(WebcamName.class, "cam");
         fL = hardwareMap.dcMotor.get("fL");
@@ -83,6 +92,7 @@ public class MechaTeleOp extends LinearOpMode {
         bR.setDirection(DcMotor.Direction.REVERSE);
         linkage.setDirection(Servo.Direction.REVERSE);
         double maxSpeed = 0.8;
+        boolean lastY = false;
 
 
 
@@ -128,9 +138,10 @@ public class MechaTeleOp extends LinearOpMode {
                 } else {
                     lights.setPosition(0.279);
                 }
+                boolean outtakeActive = outtakeState != outtakeStates.Outtake_START && outtakeState != outtakeStates.Outtake_DONE;
                 switch (intakeState) {
                     case Intake_START:
-                        carouselRotator.setPosition(0.9);
+                        if (!outtakeActive) carouselRotator.setPosition(0.9);
                         if (distanceval < 90 && distanceval > 50) {
                             timer.reset();   // start delay timer
                             intakeState = intakeStates.Intake_DELAY1;
@@ -138,7 +149,7 @@ public class MechaTeleOp extends LinearOpMode {
                         break;
                     case Intake_DELAY1:
                         if (timer.milliseconds() > 300) {
-                            carouselRotator.setPosition(0.53);
+                            if (!outtakeActive) carouselRotator.setPosition(0.53);
                             timer.reset();
                             intakeState = intakeStates.Intake_BUFFER;
                         }
@@ -146,7 +157,6 @@ public class MechaTeleOp extends LinearOpMode {
                     case Intake_BUFFER:
                         if (timer.milliseconds() > 250) {
                             intakeState = intakeStates.Intake_TURN1;
-
                         }
                         break;
                     case Intake_TURN1:
@@ -156,8 +166,8 @@ public class MechaTeleOp extends LinearOpMode {
                         }
                         break;
                     case Intake_DELAY2:
-                        if (timer.milliseconds()>300) {
-                            carouselRotator.setPosition(0.16);
+                        if (timer.milliseconds() > 300) {
+                            if (!outtakeActive) carouselRotator.setPosition(0.16);
                             intakeState = intakeStates.Intake_TURN2;
                         }
                         break;
@@ -167,23 +177,111 @@ public class MechaTeleOp extends LinearOpMode {
                 if (gamepad2.x) {
                     intakeState = intakeStates.Intake_START;
                 }
-                if (gamepad2.y) {
-                    outtake.setPower(0.8);
-                    sleep(2000);
-                    carouselRotator.setPosition(0.08);
-                    shoot();
-                    carouselRotator.setPosition(0.45);
-                    shoot();
-                    carouselRotator.setPosition(0.82);
-                    shoot();
-                    outtake.setPower(0);
-                    intakeState = intakeStates.Intake_START;
+                boolean yPressed = gamepad2.y;
+                boolean yRisingEdge = yPressed && !lastY;
+                lastY = yPressed;
+
+                if (yRisingEdge && outtakeState == outtakeStates.Outtake_START) {
+                    outtakeTimer.reset();
+                    outtakeState = outtakeStates.Outtake_TURN1;
                 }
+                switch (outtakeState) {
+                    case Outtake_TURN1:
+                        if (outtakeTimer.milliseconds() > 200) {
+                            carouselRotator.setPosition(0.08);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_SHOOT1_START;
+                        }
+                        break;
+                    case Outtake_SHOOT1_START:
+                        if (outtakeTimer.milliseconds() > 500) {
+                            linkage.setPosition(0.15);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_SHOOT1_PULSE;
+                        }
+                        break;
+                    case Outtake_SHOOT1_PULSE:
+                        if (outtakeTimer.milliseconds() > 250) {
+                            linkage.setPosition(0.4);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_TURN2;
+                        }
+                        break;
+                    case Outtake_TURN2:
+                        if (outtakeTimer.milliseconds() > 500) {
+                            carouselRotator.setPosition(0.45);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_SHOOT2_START;
+                        }
+                        break;
+                    case Outtake_SHOOT2_START:
+                        if (outtakeTimer.milliseconds() > 500) {
+                            linkage.setPosition(0.15);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_SHOOT2_PULSE;
+                        }
+                        break;
+                    case Outtake_SHOOT2_PULSE:
+                        if (outtakeTimer.milliseconds() > 250) {
+                            linkage.setPosition(0.4);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_TURN3;
+                        }
+                        break;
+                    case Outtake_TURN3:
+                        if (outtakeTimer.milliseconds() > 500) {
+                            carouselRotator.setPosition(0.82);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_SHOOT3_START;
+                        }
+                        break;
+                    case Outtake_SHOOT3_START:
+                        if (outtakeTimer.milliseconds() > 500) {
+                            linkage.setPosition(0.15);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_SHOOT3_PULSE;
+                        }
+                        break;
+                    case Outtake_SHOOT3_PULSE:
+                        if (outtakeTimer.milliseconds() > 250) {
+                            linkage.setPosition(0.4);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_BUFFER;
+                        }
+                        break;
+                    case Outtake_BUFFER:
+                        if (outtakeTimer.milliseconds() > 100) {
+                            intakeState = intakeStates.Intake_START;
+                            outtakeState = outtakeStates.Outtake_DONE;
+                        }
+                        break;
+                    case Outtake_DONE:
+                        outtakeState = outtakeStates.Outtake_START;
+                        break;
+                }
+//                if (gamepad2.y) {
+//                    outtake.setPower(0.8);
+//                    sleep(2000);
+//                    carouselRotator.setPosition(0.08);
+//                    shoot();
+//                    carouselRotator.setPosition(0.45);
+//                    shoot();
+//                    carouselRotator.setPosition(0.82);
+//                    shoot();
+//                    outtake.setPower(0);
+//                    intakeState = intakeStates.Intake_START;
+//                }
 
                 if (gamepad1.a) {
                     intake.setPower(1);
                 } else {
                     intake.setPower(0);
+                }
+                if (gamepad2.dpad_up) {
+                    outtake.setPower(0.8);
+                }
+                if (gamepad2.dpad_down) {
+                    outtake.setPower(0);
                 }
 
                 f = gamepad1.left_stick_y;
