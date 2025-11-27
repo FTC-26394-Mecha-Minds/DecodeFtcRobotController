@@ -99,8 +99,13 @@ public class RedClassifierAuto extends LinearOpMode {
                     case Intake_DELAY1:
                         if (timer.milliseconds() > 300) {
                             if (!outtakeActive) carouselRotator.setPosition(0.53);
-                            timer.reset();
-                            intakeState = intakeStates.Intake_BUFFER;
+                            if (timer.milliseconds() > 700) {
+                                intakeState = intakeStates.Intake_DELAY2;
+                                timer.reset();
+                            } else {
+                                timer.reset();
+                                intakeState = intakeStates.Intake_BUFFER;
+                            }
                         }
                         break;
                     case Intake_BUFFER:
@@ -149,14 +154,28 @@ public class RedClassifierAuto extends LinearOpMode {
         public Action intakeStop() {
             return new intakeStop();
         }
+        public class lightsOn implements Action {
+            @Override
+            public boolean run(@NonNull TelemetryPacket packet) {
+                lights.setPosition(0.279);
+                return false;
+            }
+        }
+        public Action lightsOn() {
+            return new lightsOn();
+        }
     }
     public class Outtake {
         private Servo linkage, carouselRotator;
         private DcMotorEx outtake;
+        private VoltageSensor battery;
         ElapsedTime outtakeTimer = new ElapsedTime();
+        double idealVoltage = 13.5;
+        double outtakePower = 0.775;
 
         public Outtake(HardwareMap hardwareMap) {
             outtake = hardwareMap.get(DcMotorEx.class, "outtake");
+            battery = hardwareMap.voltageSensor.iterator().next();
             linkage = hardwareMap.get(Servo.class, "linkage");
             carouselRotator = hardwareMap.get(Servo.class, "carouselRotator");
             linkage.setDirection(Servo.Direction.REVERSE);
@@ -252,7 +271,9 @@ public class RedClassifierAuto extends LinearOpMode {
         public class outtakeRun implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                outtake.setPower(0.775);
+                double batteryVoltage = battery.getVoltage();
+                double power = outtakePower*(idealVoltage/batteryVoltage);
+                outtake.setPower(0.8);
                 return false;
             }
         }
@@ -269,6 +290,7 @@ public class RedClassifierAuto extends LinearOpMode {
         public Action outtakeStop() {
             return new outtakeStop();
         }
+
     }
 
 
@@ -290,7 +312,7 @@ public class RedClassifierAuto extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(130)),0)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
-        TrajectoryActionBuilder shootTwo = drive.actionBuilder(new Pose2d(14, 48, Math.toRadians(270)))
+        TrajectoryActionBuilder shootTwo = drive.actionBuilder(new Pose2d(12, 48, Math.toRadians(270)))
                 .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(130)),0)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
@@ -302,7 +324,7 @@ public class RedClassifierAuto extends LinearOpMode {
                 .lineToYConstantHeading(48)
                 .waitSeconds(0.5);
         TrajectoryActionBuilder intakeTwo = drive.actionBuilder(new Pose2d(-22, 16, Math.toRadians(140)))
-                .splineToLinearHeading(new Pose2d(12, 34, Math.toRadians(270)), 0)
+                .splineToLinearHeading(new Pose2d(12, 33, Math.toRadians(270)), 0)
                 .waitSeconds(0.5)
                 .lineToYConstantHeading(38)
                 .waitSeconds(0.5)
@@ -312,28 +334,31 @@ public class RedClassifierAuto extends LinearOpMode {
 
         if (isStopRequested()) {return;}
         Actions.runBlocking(
-                new SequentialAction (
-                        outtake.outtakeRun(),
-                        shootPreload.build(),
-                        outtake.outtakeStop(),
-                        new ParallelAction(
-                                intakeSpindex.intakeRun(),
-                                intakeOne.build(),
-                                intakeSpindex.intakeProc()
-                        ),
-                        intakeSpindex.intakeStop(),
-                        outtake.outtakeRun(),
-                        shootOne.build(),
-                        outtake.outtakeStop(),
-                        new ParallelAction(
-                                intakeSpindex.intakeRun(),
-                                intakeTwo.build(),
-                                intakeSpindex.intakeProc()
-                        ),
-                        intakeSpindex.intakeStop(),
-                        outtake.outtakeRun(),
-                        shootTwo.build(),
-                        outtake.outtakeStop()
+                new ParallelAction(
+                    intakeSpindex.lightsOn(),
+                    new SequentialAction(
+                            outtake.outtakeRun(),
+                            shootPreload.build(),
+                            outtake.outtakeStop(),
+                            new ParallelAction(
+                                    intakeSpindex.intakeRun(),
+                                    intakeOne.build(),
+                                    intakeSpindex.intakeProc()
+                            ),
+                            intakeSpindex.intakeStop(),
+                            outtake.outtakeRun(),
+                            shootOne.build(),
+                            outtake.outtakeStop(),
+                            new ParallelAction(
+                                    intakeSpindex.intakeRun(),
+                                    intakeTwo.build(),
+                                    intakeSpindex.intakeProc()
+                            ),
+                            intakeSpindex.intakeStop(),
+                            outtake.outtakeRun(),
+                            shootTwo.build(),
+                            outtake.outtakeStop()
+                    )
                 )
         );
 
