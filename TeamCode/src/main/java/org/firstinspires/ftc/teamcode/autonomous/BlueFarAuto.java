@@ -51,6 +51,7 @@ public class BlueFarAuto extends LinearOpMode {
         Outtake_START,
         Outtake_TURN1,
         Outtake_SHOOT1_START,
+        Outtake_WAIT,
         Outtake_SHOOT1_PULSE,
         Outtake_TURN2,
         Outtake_SHOOT2_START,
@@ -157,7 +158,7 @@ public class BlueFarAuto extends LinearOpMode {
         public class lightsOn implements Action {
             @Override
             public boolean run(@NonNull TelemetryPacket packet) {
-                lights.setPosition(0.615);
+                lights.setPosition(0.279);
                 return false;
             }
         }
@@ -196,9 +197,22 @@ public class BlueFarAuto extends LinearOpMode {
                             outtakeState = outtakeStates.Outtake_SHOOT1_START;
                         }
                         break;
+                    //                    case Outtake_SHOOT1_START:
+//                        if (outtakeTimer.milliseconds() > 500) {
+//                            linkage.setPosition(0.15);
+//                            outtakeTimer.reset();
+//                            outtakeState = outtakeStates.Outtake_SHOOT1_PULSE;
+//                        }
+//                        break;
                     case Outtake_SHOOT1_START:
                         if (outtakeTimer.milliseconds() > 500) {
                             linkage.setPosition(0.15);
+                            outtakeTimer.reset();
+                            outtakeState = outtakeStates.Outtake_WAIT;
+                        }
+                        break;
+                    case Outtake_WAIT:
+                        if (outtakeTimer.milliseconds()>50) {
                             outtakeTimer.reset();
                             outtakeState = outtakeStates.Outtake_SHOOT1_PULSE;
                         }
@@ -273,7 +287,7 @@ public class BlueFarAuto extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket packet) {
                 double batteryVoltage = battery.getVoltage();
                 double power = outtakePower*(idealVoltage/batteryVoltage);
-                outtake.setPower(0.8);
+                outtake.setPower(0.95);
                 return false;
             }
         }
@@ -293,42 +307,38 @@ public class BlueFarAuto extends LinearOpMode {
 
     }
 
-
-
     @Override
     public void runOpMode() throws InterruptedException {
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        Pose2d initialPose = new Pose2d(-62, 36, 0);
+        Pose2d initialPose = new Pose2d(60, -16, Math.PI);
         MecanumDrive drive = new MecanumDrive(hardwareMap, initialPose);
         IntakeSpindex intakeSpindex = new IntakeSpindex(hardwareMap);
         Outtake outtake = new Outtake(hardwareMap);
         waitForStart();
 
         TrajectoryActionBuilder shootPreload = drive.actionBuilder(initialPose)
-                .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(130)),0)
+                .splineToLinearHeading(new Pose2d(44, -14, Math.toRadians(200)),Math.PI)
+                .afterTime(0, outtake.ShootingSequence())
+                .waitSeconds(5);
+        TrajectoryActionBuilder shootOne = drive.actionBuilder(new Pose2d(36, -62, Math.toRadians(90)))
+                .splineToLinearHeading(new Pose2d(44, -14, Math.toRadians(200)),Math.PI)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
-        TrajectoryActionBuilder shootOne = drive.actionBuilder(new Pose2d(-12, 48, Math.toRadians(270)))
-                .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(130)),0)
+        TrajectoryActionBuilder shootTwo = drive.actionBuilder(new Pose2d(58, -60, Math.toRadians(115)))
+                .splineToLinearHeading(new Pose2d(44, -14, Math.toRadians(200)),Math.PI)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
-        TrajectoryActionBuilder shootTwo = drive.actionBuilder(new Pose2d(14, 48, Math.toRadians(270)))
-                .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(130)),0)
-                .afterTime(0, outtake.ShootingSequence())
-                .waitSeconds(4.5);
-        TrajectoryActionBuilder intakeOne = drive.actionBuilder(new Pose2d(-22, 16, Math.toRadians(140)))
-                .splineToLinearHeading(new Pose2d(-12, 34, Math.toRadians(270)), 0)
+        TrajectoryActionBuilder intakeOne = drive.actionBuilder(new Pose2d(44, -14, Math.toRadians(200)))
+                .splineToLinearHeading(new Pose2d(36, -30, Math.toRadians(90)), Math.PI)
+                .waitSeconds(0.1)
+                .lineToYConstantHeading(-52)
                 .waitSeconds(0.5)
-                .lineToYConstantHeading(38)
-                .waitSeconds(0.5)
-                .lineToYConstantHeading(48)
+                .lineToYConstantHeading(-62)
                 .waitSeconds(0.5);
-        TrajectoryActionBuilder intakeTwo = drive.actionBuilder(new Pose2d(-22, 16, Math.toRadians(140)))
-                .splineToLinearHeading(new Pose2d(12, 33, Math.toRadians(270)), 0)
-                .waitSeconds(0.5)
-                .lineToYConstantHeading(38)
-                .waitSeconds(0.5)
-                .lineToYConstantHeading(48)
+        TrajectoryActionBuilder intakeTwo = drive.actionBuilder(new Pose2d(44, -14, Math.toRadians(200)))
+                .splineToLinearHeading(new Pose2d(54, -58, Math.toRadians(115)), Math.PI)
+                .waitSeconds(1.5)
+                .splineToLinearHeading(new Pose2d(58, -62, Math.toRadians(115)), Math.PI)
                 .waitSeconds(0.5);
 
 

@@ -308,27 +308,29 @@ public class RedClassifierAuto extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(130)),0)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
-        TrajectoryActionBuilder shootOne = drive.actionBuilder(new Pose2d(-12, 48, Math.toRadians(270)))
+        TrajectoryActionBuilder shootOne = drive.actionBuilder(new Pose2d(-12, 52, Math.toRadians(270)))
                 .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(130)),0)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
-        TrajectoryActionBuilder shootTwo = drive.actionBuilder(new Pose2d(12, 48, Math.toRadians(270)))
+        TrajectoryActionBuilder shootTwo = drive.actionBuilder(new Pose2d(10, 52, Math.toRadians(270)))
                 .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(130)),0)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
-        TrajectoryActionBuilder intakeOne = drive.actionBuilder(new Pose2d(-22, 16, Math.toRadians(140)))
+        TrajectoryActionBuilder intakeOne = drive.actionBuilder(new Pose2d(-22, 16, Math.toRadians(130)))
                 .splineToLinearHeading(new Pose2d(-12, 34, Math.toRadians(270)), 0)
                 .waitSeconds(0.5)
                 .lineToYConstantHeading(38)
                 .waitSeconds(0.5)
-                .lineToYConstantHeading(48)
+                .lineToYConstantHeading(52)
                 .waitSeconds(0.5);
-        TrajectoryActionBuilder intakeTwo = drive.actionBuilder(new Pose2d(-22, 16, Math.toRadians(140)))
-                .splineToLinearHeading(new Pose2d(12, 33, Math.toRadians(270)), 0)
+        TrajectoryActionBuilder intakeTwo = drive.actionBuilder(new Pose2d(-22, 16, Math.toRadians(130)))
+                .splineToLinearHeading(new Pose2d(10, 30, Math.toRadians(270)), 0)
                 .waitSeconds(0.5)
-                .lineToYConstantHeading(38)
-                .waitSeconds(0.5)
-                .lineToYConstantHeading(48)
+                .lineToYConstantHeading(34)
+                .waitSeconds(0.25)
+                .lineToYConstantHeading(42)
+                .waitSeconds(0.25)
+                .lineToYConstantHeading(52)
                 .waitSeconds(0.5);
 
 

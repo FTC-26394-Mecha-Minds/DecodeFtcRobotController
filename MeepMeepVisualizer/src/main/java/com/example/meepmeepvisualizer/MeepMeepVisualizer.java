@@ -9,12 +9,12 @@ public class MeepMeepVisualizer {
     public static void main(String[] args) {
         MeepMeep meepMeep = new MeepMeep(800);
 
-        RoadRunnerBotEntity classifierBot = new DefaultBotBuilder(meepMeep)
+        RoadRunnerBotEntity redclassifierBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(75, 75, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        classifierBot.runAction(classifierBot.getDrive().actionBuilder(new Pose2d(-62, 36, 0))
+        redclassifierBot.runAction(redclassifierBot.getDrive().actionBuilder(new Pose2d(-62, 36, 0))
                 .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(310)),0)
                 .waitSeconds(4.5)
                 .splineToLinearHeading(new Pose2d(-12, 34, Math.toRadians(90)), 0)
@@ -34,12 +34,39 @@ public class MeepMeepVisualizer {
                 .splineToLinearHeading(new Pose2d(-22, 16, Math.toRadians(310)),0)
                 .waitSeconds(4.5)
                 .build());
-        RoadRunnerBotEntity farBot = new DefaultBotBuilder(meepMeep)
+
+        RoadRunnerBotEntity blueclassifierBot = new DefaultBotBuilder(meepMeep)
                 // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
                 .setConstraints(75, 75, Math.toRadians(180), Math.toRadians(180), 15)
                 .build();
 
-        farBot.runAction(farBot.getDrive().actionBuilder(new Pose2d(60, 16, 0))
+        blueclassifierBot.runAction(blueclassifierBot.getDrive().actionBuilder(new Pose2d(-62, -36, 0))
+                .splineToLinearHeading(new Pose2d(-22, -16, Math.toRadians(50)),0)
+                .waitSeconds(4.5)
+                .splineToLinearHeading(new Pose2d(-12, -34, Math.toRadians(270)), 0)
+                .waitSeconds(0.5)
+                .lineToYConstantHeading(-38)
+                .waitSeconds(0.5)
+                .lineToYConstantHeading(-42)
+                .waitSeconds(0.5)
+                .splineToLinearHeading(new Pose2d(-22, -16, Math.toRadians(50)),0)
+                .waitSeconds(4.5)
+                .splineToLinearHeading(new Pose2d(12, -34, Math.toRadians(270)), 0)
+                .waitSeconds(0.5)
+                .lineToYConstantHeading(-38)
+                .waitSeconds(0.5)
+                .lineToYConstantHeading(-42)
+                .waitSeconds(0.5)
+                .splineToLinearHeading(new Pose2d(-22, -16, Math.toRadians(50)),0)
+                .waitSeconds(4.5)
+                .build());
+
+        RoadRunnerBotEntity redfarBot = new DefaultBotBuilder(meepMeep)
+                // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
+                .setConstraints(75, 75, Math.toRadians(180), Math.toRadians(180), 15)
+                .build();
+
+        redfarBot.runAction(redfarBot.getDrive().actionBuilder(new Pose2d(60, 16, 0))
                 .splineToLinearHeading(new Pose2d(46, 8, Math.toRadians(330)),0)
                 .waitSeconds(4.5)
                 .splineToLinearHeading(new Pose2d(36, 34, Math.toRadians(90)), 0)
@@ -55,12 +82,35 @@ public class MeepMeepVisualizer {
                 .splineToLinearHeading(new Pose2d(46, 8, Math.toRadians(330)),0)
                 .waitSeconds(4.5)
                 .build());
+        RoadRunnerBotEntity bluefarBot = new DefaultBotBuilder(meepMeep)
+                // Set bot constraints: maxVel, maxAccel, maxAngVel, maxAngAccel, track width
+                .setConstraints(75, 75, Math.toRadians(180), Math.toRadians(180), 15)
+                .build();
+
+        bluefarBot.runAction(bluefarBot.getDrive().actionBuilder(new Pose2d(60, -16, 0))
+                .splineToLinearHeading(new Pose2d(46, -8, Math.toRadians(30)),0)
+                .waitSeconds(4.5)
+                .splineToLinearHeading(new Pose2d(36, -34, Math.toRadians(270)), 0)
+                .waitSeconds(0.5)
+                .lineToYConstantHeading(-38)
+                .waitSeconds(0.5)
+                .lineToYConstantHeading(-46)
+                .waitSeconds(0.5)
+                .splineToLinearHeading(new Pose2d(46, -8, Math.toRadians(30)),0)
+                .waitSeconds(4.5)
+                .splineToLinearHeading(new Pose2d(58, -58, Math.toRadians(295)), 0)
+                .waitSeconds(4.5)
+                .splineToLinearHeading(new Pose2d(46, -8, Math.toRadians(30)),0)
+                .waitSeconds(4.5)
+                .build());
 
         meepMeep.setBackground(MeepMeep.Background.FIELD_DECODE_JUICE_BLACK)
                 .setDarkMode(true)
                 .setBackgroundAlpha(0.95f)
-                .addEntity(classifierBot)
-                .addEntity(farBot)
+                .addEntity(blueclassifierBot)
+                .addEntity(redclassifierBot)
+                .addEntity(redfarBot)
+                .addEntity(bluefarBot)
                 .start();
     }
 }
