@@ -286,7 +286,7 @@ public class RedFarAuto extends LinearOpMode {
             public boolean run(@NonNull TelemetryPacket packet) {
                 double batteryVoltage = battery.getVoltage();
                 double power = outtakePower*(idealVoltage/batteryVoltage);
-                outtake.setPower(0.94);
+                outtake.setPower(0.96);
                 return false;
             }
         }
@@ -325,7 +325,7 @@ public class RedFarAuto extends LinearOpMode {
                 .splineToLinearHeading(new Pose2d(44, 14, Math.toRadians(155)),Math.PI)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
-        TrajectoryActionBuilder shootTwo = drive.actionBuilder(new Pose2d(58, 62, Math.toRadians(245)))
+        TrajectoryActionBuilder shootTwo = drive.actionBuilder(new Pose2d(58, 62, Math.toRadians(170)))
                 .splineToLinearHeading(new Pose2d(44, 14, Math.toRadians(155)),Math.PI)
                 .afterTime(0, outtake.ShootingSequence())
                 .waitSeconds(4.5);
@@ -337,10 +337,12 @@ public class RedFarAuto extends LinearOpMode {
                 .lineToYConstantHeading(62)
                 .waitSeconds(0.5);
         TrajectoryActionBuilder intakeTwo = drive.actionBuilder(new Pose2d(44, 14, Math.toRadians(155)))
-                .splineToLinearHeading(new Pose2d(54, 60, Math.toRadians(245)), Math.PI)
-                .waitSeconds(1.5)
-                .splineToLinearHeading(new Pose2d(58, 62, Math.toRadians(245)), Math.PI)
-                .waitSeconds(0.5);
+                .splineToLinearHeading(new Pose2d(36, 64, Math.toRadians(180)), Math.PI)
+                .waitSeconds(0.5)
+                .splineToLinearHeading(new Pose2d(48, 64, Math.toRadians(180)), Math.PI)
+                .waitSeconds(0.25)
+                .splineToLinearHeading(new Pose2d(58, 64, Math.toRadians(170)), Math.PI)
+                .waitSeconds(1.5);
 
 
         if (isStopRequested()) {return;}

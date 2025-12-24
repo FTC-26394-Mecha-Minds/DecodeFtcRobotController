@@ -21,7 +21,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name = "MechaTeleOp")
 public class MechaTeleOp extends LinearOpMode {
-    double prevFL = 0, prevBL = 0, prevFR = 0, prevBR = 0;
     private DcMotor fL, bL, fR, bR; // carousel rotator will be fR
     private DcMotor intake, outtake, encoder;
     private Servo lights, linkage;
@@ -248,19 +247,6 @@ public class MechaTeleOp extends LinearOpMode {
                         outtakeState = outtakeStates.Outtake_START;
                         break;
                 }
-//                if (gamepad2.y) {
-//                    outtake.setPower(0.8);
-//                    sleep(2000);
-//                    carouselRotator.setPosition(0.08);
-//                    shoot();
-//                    carouselRotator.setPosition(0.45);
-//                    shoot();
-//                    carouselRotator.setPosition(0.82);
-//                    shoot();
-//                    outtake.setPower(0);
-//                    intakeState = intakeStates.Intake_START;
-//                }
-
                 if (gamepad1.a) {
                     intake.setPower(1);
                 } else {
@@ -273,44 +259,13 @@ public class MechaTeleOp extends LinearOpMode {
                     outtake.setPower(0);
                 }
 
-//                f = gamepad1.left_stick_y;
-//                r = -gamepad1.right_stick_x;
-//                s = -gamepad1.left_stick_x;
-//                fLeftPower = (f + r + s);
-//                bLeftPower = (f + r - s);
-//                fRightPower = (f - r - s);
-//                bRightPower = (f - r + s);
-//                double maxN = Math.max(Math.abs(fLeftPower), Math.max(Math.abs(bLeftPower),
-//                        Math.max(Math.abs(fRightPower), Math.abs(bRightPower))));
-//                if (maxN > 1) {
-//                    fLeftPower /= maxN;
-//                    bLeftPower /= maxN;
-//                    fRightPower /= maxN;
-//                    bRightPower /= maxN;
-//                }
-//                fL.setPower(fLeftPower * maxSpeed);
-//                bL.setPower(bLeftPower * maxSpeed);
-//                fR.setPower(fRightPower * maxSpeed);
-//                bR.setPower(bRightPower * maxSpeed);
-                // get joystick input
-                 f = gamepad1.left_stick_y;  // forward/back
-                 r = -gamepad1.right_stick_x;  // turn
-                 s = -gamepad1.left_stick_x;   // strafe
-
-                double deadzone = 0.05;
-                if (Math.abs(f) < deadzone) f = 0;
-                if (Math.abs(r) < deadzone) r = 0;
-                if (Math.abs(s) < deadzone) s = 0;
-
-                f = Math.pow(f, 3);
-                r = Math.pow(r, 3);
-                s = Math.pow(s, 3);
-
-                 fLeftPower = f + r + s;
-                 bLeftPower = f + r - s;
-                 fRightPower = f - r - s;
-                 bRightPower = f - r + s;
-
+                f = gamepad1.left_stick_y;
+                r = -gamepad1.right_stick_x;
+                s = -gamepad1.left_stick_x;
+                fLeftPower = (f + r + s);
+                bLeftPower = (f + r - s);
+                fRightPower = (f - r - s);
+                bRightPower = (f - r + s);
                 double maxN = Math.max(Math.abs(fLeftPower), Math.max(Math.abs(bLeftPower),
                         Math.max(Math.abs(fRightPower), Math.abs(bRightPower))));
                 if (maxN > 1) {
@@ -319,18 +274,6 @@ public class MechaTeleOp extends LinearOpMode {
                     fRightPower /= maxN;
                     bRightPower /= maxN;
                 }
-
-                double ramp = 0.15;
-                fLeftPower = prevFL + (fLeftPower - prevFL) * ramp;
-                bLeftPower = prevBL + (bLeftPower - prevBL) * ramp;
-                fRightPower = prevFR + (fRightPower - prevFR) * ramp;
-                bRightPower = prevBR + (bRightPower - prevBR) * ramp;
-
-                prevFL = fLeftPower;
-                prevBL = bLeftPower;
-                prevFR = fRightPower;
-                prevBR = bRightPower;
-
                 fL.setPower(fLeftPower * maxSpeed);
                 bL.setPower(bLeftPower * maxSpeed);
                 fR.setPower(fRightPower * maxSpeed);
@@ -338,13 +281,6 @@ public class MechaTeleOp extends LinearOpMode {
 
             }
         }
-    }
-    private void shoot() throws InterruptedException {
-        sleep(500);
-        linkage.setPosition(0.15);
-        sleep(250);
-        linkage.setPosition(0.4);
-        sleep(500);
     }
 }
 
